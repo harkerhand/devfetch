@@ -1,49 +1,127 @@
-name: Rust Cross-Platform CI
+name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
+    tags: ["v*"]
   pull_request:
-    branches: [main]
+    branches: [main, master]
+
+env:
+  CARGO_TERM_COLOR: always
+
+permissions:
+  contents: write
 
 jobs:
-  rust-ci:
-    name: Rust on ${{ matrix.os }}
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+
+      - name: Cache cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Run tests
+        run: cargo test --locked --verbose
+
+  build:
+    name: Build
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
 
-      - name: Cache Rust artifacts
-        uses: Swatinem/rust-cache@v2
+      - name: Cache cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
 
       - name: Build
-        run: cargo build --locked --verbose
+        run: cargo build --release --locked --verbose
 
-      - name: Test
-        run: cargo test --locked --verbose
+      - name: Rename binary (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: cp target/release/rsenv target/release/rsenv-${{ matrix.os }}
 
-      - name: Smoke report (JSON)
-        run: |
-          cargo run --locked -- --system --binaries --languages --json > envinfo-${{ matrix.os }}.json
+      - name: Rename binary (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Copy-Item target/release/rsenv.exe target/release/rsenv-${{ matrix.os }}.exe
 
-      - name: Smoke report (Markdown)
-        run: |
-          cargo run --locked -- --system --binaries --markdown > envinfo-${{ matrix.os }}.md
-
-      - name: Upload reports
+      - name: Upload binaries (Unix)
+        if: runner.os != 'Windows'
         uses: actions/upload-artifact@v4
         with:
-          name: envinfo-report-${{ matrix.os }}
-          path: |
-            envinfo-${{ matrix.os }}.json
-            envinfo-${{ matrix.os }}.md
-          if-no-files-found: error
+          name: rsenv-${{ matrix.os }}
+          path: target/release/rsenv-${{ matrix.os }}
+
+      - name: Upload binaries (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rsenv-${{ matrix.os }}
+          path: target/release/rsenv-${{ matrix.os }}.exe
+
+  release:
+    name: Release
+    needs: [test, build]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./downloaded_artifacts
+
+      - name: Prepare release binaries
+        shell: bash
+        run: |
+          mkdir -p release_binaries
+          cp ./downloaded_artifacts/rsenv-ubuntu-latest/rsenv-ubuntu-latest release_binaries/rsenv-linux
+          cp ./downloaded_artifacts/rsenv-macos-latest/rsenv-macos-latest release_binaries/rsenv-macos
+          cp ./downloaded_artifacts/rsenv-windows-latest/rsenv-windows-latest.exe release_binaries/rsenv-windows.exe
+          chmod +x release_binaries/rsenv-linux release_binaries/rsenv-macos
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release_binaries/rsenv-linux
+            release_binaries/rsenv-macos
+            release_binaries/rsenv-windows.exe
+          generate_release_notes: true
+          token: ${{ secrets.GITHUB_TOKEN }}
