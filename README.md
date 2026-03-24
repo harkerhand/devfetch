@@ -11,13 +11,13 @@
 Linux/macOS：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/harkerhand/devfetch/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/harkerhand/devfetch/master/scripts/install.sh | bash
 ```
 
 Windows PowerShell：
 
 ```powershell
-irm https://raw.githubusercontent.com/harkerhand/devfetch/main/scripts/install.ps1 | iex
+irm https://raw.githubusercontent.com/harkerhand/devfetch/master/scripts/install.ps1 | iex
 ```
 
 默认安装位置：
@@ -38,7 +38,7 @@ Linux/macOS：
 ```bash
 DEVFETCH_INSTALL_DIR="$HOME/bin" \
 DEVFETCH_VERSION="v0.1.2" \
-curl -fsSL https://raw.githubusercontent.com/harkerhand/devfetch/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/harkerhand/devfetch/master/scripts/install.sh | bash
 ```
 
 Windows PowerShell：
@@ -46,7 +46,7 @@ Windows PowerShell：
 ```powershell
 $env:DEVFETCH_INSTALL_DIR = "$HOME\\bin"
 $env:DEVFETCH_VERSION = "v0.1.2"
-irm https://raw.githubusercontent.com/harkerhand/devfetch/main/scripts/install.ps1 | iex
+irm https://raw.githubusercontent.com/harkerhand/devfetch/master/scripts/install.ps1 | iex
 ```
 
 ### 2) 从 Cargo 安装
@@ -79,13 +79,13 @@ cargo build --release
 Linux/macOS（远程执行）：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/harkerhand/devfetch/main/scripts/uninstall.sh | bash
+curl -fsSL https://raw.githubusercontent.com/harkerhand/devfetch/master/scripts/uninstall.sh | bash
 ```
 
 Windows PowerShell（远程执行）：
 
 ```powershell
-irm https://raw.githubusercontent.com/harkerhand/devfetch/main/scripts/uninstall.ps1 | iex
+irm https://raw.githubusercontent.com/harkerhand/devfetch/master/scripts/uninstall.ps1 | iex
 ```
 
 自定义目录时，同样通过 `DEVFETCH_INSTALL_DIR` 传入相同路径。
