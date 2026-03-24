@@ -45,7 +45,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            platform: linux
+          - os: macos-latest
+            platform: macos
+          - os: windows-latest
+            platform: windows
     steps:
       - uses: actions/checkout@v4
 
@@ -71,26 +77,26 @@ jobs:
       - name: Rename binary (Unix)
         if: runner.os != 'Windows'
         shell: bash
-        run: cp target/release/rsenv target/release/rsenv-${{ matrix.os }}
+        run: cp target/release/rsenv target/release/rsenv-${{ matrix.platform }}
 
       - name: Rename binary (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
-        run: Copy-Item target/release/rsenv.exe target/release/rsenv-${{ matrix.os }}.exe
+        run: Copy-Item target/release/rsenv.exe target/release/rsenv-${{ matrix.platform }}.exe
 
       - name: Upload binaries (Unix)
         if: runner.os != 'Windows'
         uses: actions/upload-artifact@v4
         with:
-          name: rsenv-${{ matrix.os }}
-          path: target/release/rsenv-${{ matrix.os }}
+          name: rsenv-${{ matrix.platform }}
+          path: target/release/rsenv-${{ matrix.platform }}
 
       - name: Upload binaries (Windows)
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
-          name: rsenv-${{ matrix.os }}
-          path: target/release/rsenv-${{ matrix.os }}.exe
+          name: rsenv-${{ matrix.platform }}
+          path: target/release/rsenv-${{ matrix.platform }}.exe
 
   release:
     name: Release
@@ -111,9 +117,9 @@ jobs:
         shell: bash
         run: |
           mkdir -p release_binaries
-          cp ./downloaded_artifacts/rsenv-ubuntu-latest/rsenv-ubuntu-latest release_binaries/rsenv-linux
-          cp ./downloaded_artifacts/rsenv-macos-latest/rsenv-macos-latest release_binaries/rsenv-macos
-          cp ./downloaded_artifacts/rsenv-windows-latest/rsenv-windows-latest.exe release_binaries/rsenv-windows.exe
+          cp ./downloaded_artifacts/rsenv-linux/rsenv-linux release_binaries/rsenv-linux
+          cp ./downloaded_artifacts/rsenv-macos/rsenv-macos release_binaries/rsenv-macos
+          cp ./downloaded_artifacts/rsenv-windows/rsenv-windows.exe release_binaries/rsenv-windows.exe
           chmod +x release_binaries/rsenv-linux release_binaries/rsenv-macos
 
       - name: Create release
