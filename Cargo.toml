@@ -1,0 +1,16 @@
+[package]
+name = "rsenv"
+version = "0.1.0"
+edition = "2024"
+description = "A tool to print dev environment information."
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+toml = "0.9"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
