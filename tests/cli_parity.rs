@@ -1,7 +1,7 @@
 use std::process::Command;
 
 fn bin() -> String {
-    std::env::var("CARGO_BIN_EXE_envfetch").expect("missing binary path in CARGO_BIN_EXE_*")
+    std::env::var("CARGO_BIN_EXE_devfetch").expect("missing binary path in CARGO_BIN_EXE_*")
 }
 
 fn run(args: &[&str]) -> String {

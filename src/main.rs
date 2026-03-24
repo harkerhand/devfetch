@@ -1,8 +1,8 @@
-use envfetch::{cli, collect, format, model, presets};
+use devfetch::{cli, collect, format, model, presets};
 use std::collections::BTreeMap;
 
-use envfetch::model::RunOptions;
-use envfetch::presets::PresetSpec;
+use devfetch::model::RunOptions;
+use devfetch::presets::PresetSpec;
 
 fn build_props_from_flags(args: &cli::Cli, defaults: &PresetSpec) -> PresetSpec {
     let mut out = BTreeMap::new();

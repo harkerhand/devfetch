@@ -1,6 +1,6 @@
 [package]
-name = "envfetch"
-version = "0.1.1"
+name = "devfetch"
+version = "0.1.2"
 edition = "2024"
 description = "A tool to print dev environment information."
 license = "MIT"
