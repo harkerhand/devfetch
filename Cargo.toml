@@ -3,6 +3,7 @@ name = "envfetch"
 version = "0.1.1"
 edition = "2024"
 description = "A tool to print dev environment information."
+license = "MIT"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
