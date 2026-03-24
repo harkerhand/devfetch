@@ -1,4 +1,4 @@
-use rsenv::util;
+use envfetch::util;
 
 #[test]
 fn find_version_matches_real_world_cases() {

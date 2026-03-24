@@ -88,26 +88,26 @@ jobs:
       - name: Rename binary (Unix)
         if: runner.os != 'Windows'
         shell: bash
-        run: cp target/release/rsenv target/release/rsenv-${{ matrix.platform }}
+        run: cp target/release/envfetch target/release/envfetch-${{ matrix.platform }}
 
       - name: Rename binary (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
-        run: Copy-Item target/release/rsenv.exe target/release/rsenv-${{ matrix.platform }}.exe
+        run: Copy-Item target/release/envfetch.exe target/release/envfetch-${{ matrix.platform }}.exe
 
       - name: Upload binaries (Unix)
         if: runner.os != 'Windows'
         uses: actions/upload-artifact@v4
         with:
-          name: rsenv-${{ matrix.platform }}
-          path: target/release/rsenv-${{ matrix.platform }}
+          name: envfetch-${{ matrix.platform }}
+          path: target/release/envfetch-${{ matrix.platform }}
 
       - name: Upload binaries (Windows)
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
-          name: rsenv-${{ matrix.platform }}
-          path: target/release/rsenv-${{ matrix.platform }}.exe
+          name: envfetch-${{ matrix.platform }}
+          path: target/release/envfetch-${{ matrix.platform }}.exe
 
   release:
     name: Release
@@ -128,17 +128,17 @@ jobs:
         shell: bash
         run: |
           mkdir -p release_binaries
-          cp ./downloaded_artifacts/rsenv-linux/rsenv-linux release_binaries/rsenv-linux
-          cp ./downloaded_artifacts/rsenv-macos/rsenv-macos release_binaries/rsenv-macos
-          cp ./downloaded_artifacts/rsenv-windows/rsenv-windows.exe release_binaries/rsenv-windows.exe
-          chmod +x release_binaries/rsenv-linux release_binaries/rsenv-macos
+          cp ./downloaded_artifacts/envfetch-linux/envfetch-linux release_binaries/envfetch-linux
+          cp ./downloaded_artifacts/envfetch-macos/envfetch-macos release_binaries/envfetch-macos
+          cp ./downloaded_artifacts/envfetch-windows/envfetch-windows.exe release_binaries/envfetch-windows.exe
+          chmod +x release_binaries/envfetch-linux release_binaries/envfetch-macos
 
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            release_binaries/rsenv-linux
-            release_binaries/rsenv-macos
-            release_binaries/rsenv-windows.exe
+            release_binaries/envfetch-linux
+            release_binaries/envfetch-macos
+            release_binaries/envfetch-windows.exe
           generate_release_notes: true
           token: ${{ secrets.GITHUB_TOKEN }}

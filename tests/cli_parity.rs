@@ -1,15 +1,7 @@
 use std::process::Command;
 
 fn bin() -> String {
-    if let Some(p) = option_env!("CARGO_BIN_EXE_rsenv") {
-        return p.to_string();
-    }
-    if let Some(p) = option_env!("CARGO_BIN_EXE_envinfo") {
-        return p.to_string();
-    }
-    std::env::var("CARGO_BIN_EXE_rsenv")
-        .or_else(|_| std::env::var("CARGO_BIN_EXE_envinfo"))
-        .expect("missing binary path in CARGO_BIN_EXE_*")
+    std::env::var("CARGO_BIN_EXE_envfetch").expect("missing binary path in CARGO_BIN_EXE_*")
 }
 
 fn run(args: &[&str]) -> String {

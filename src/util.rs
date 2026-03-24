@@ -1,11 +1,9 @@
+use std::collections::HashMap;
 use std::env;
 use std::fs;
-use std::collections::HashMap;
-use std::sync::{Mutex, OnceLock};
 use std::path::Path;
-use std::process::{Command, Stdio};
-use std::thread;
-use std::time::{Duration, Instant};
+use std::process::Command;
+use std::sync::{Mutex, OnceLock};
 
 pub const NOT_FOUND: &str = "Not Found";
 pub const NA: &str = "N/A";
@@ -15,85 +13,43 @@ fn which_cache() -> &'static Mutex<HashMap<String, Option<String>>> {
     CACHE.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
-fn command_timeout_ms() -> u64 {
-    env::var("RSENV_CMD_TIMEOUT_MS")
-        .ok()
-        .and_then(|v| v.parse::<u64>().ok())
-        .unwrap_or(2500)
-}
-
-fn run_with_timeout(mut cmd: Command) -> Result<(String, String, bool), String> {
-    cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
-    let mut child = cmd.spawn().map_err(|e| e.to_string())?;
-    let timeout = Duration::from_millis(command_timeout_ms());
-    let start = Instant::now();
-
-    loop {
-        match child.try_wait() {
-            Ok(Some(_)) => {
-                let output = child.wait_with_output().map_err(|e| e.to_string())?;
-                let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-                let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-                return Ok((stdout, stderr, false));
-            }
-            Ok(None) => {
-                if start.elapsed() >= timeout {
-                    let _ = child.kill();
-                    let _ = child.wait();
-                    return Ok((String::new(), String::new(), true));
-                }
-                thread::sleep(Duration::from_millis(25));
-            }
-            Err(e) => return Err(e.to_string()),
-        }
-    }
-}
-
 pub fn run_shell(command: &str) -> String {
     #[cfg(target_os = "windows")]
-    let cmd = {
+    let mut cmd = {
         let mut c = Command::new("cmd");
         c.args(["/C", command]);
         c
     };
     #[cfg(not(target_os = "windows"))]
-    let cmd = {
+    let mut cmd = {
         let mut c = Command::new("sh");
         c.arg("-lc").arg(command);
         c
     };
-    match run_with_timeout(cmd) {
-        Ok((stdout, _stderr, timed_out)) => {
-            if timed_out {
-                String::new()
-            } else {
-                stdout.trim().to_string()
-            }
-        }
+    match cmd.output() {
+        Ok(output) => String::from_utf8_lossy(&output.stdout).trim().to_string(),
         Err(_) => String::new(),
     }
 }
 
 pub fn run_shell_unified(command: &str) -> String {
     #[cfg(target_os = "windows")]
-    let cmd = {
+    let mut cmd = {
         let mut c = Command::new("cmd");
         c.args(["/C", command]);
         c
     };
     #[cfg(not(target_os = "windows"))]
-    let cmd = {
+    let mut cmd = {
         let mut c = Command::new("sh");
         c.arg("-lc").arg(command);
         c
     };
-    match run_with_timeout(cmd) {
-        Ok((stdout, stderr, timed_out)) => {
-            if timed_out {
-                String::new()
-            } else {
-                format!("{}{}", stdout, stderr).trim().to_string()
-            }
+    match cmd.output() {
+        Ok(output) => {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            format!("{}{}", stdout, stderr).trim().to_string()
         }
         Err(_) => String::new(),
     }
@@ -191,7 +147,9 @@ pub fn read_file(path: &str) -> Option<String> {
 }
 
 pub fn shell_escape(s: &str) -> String {
-    if s.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '_' | '-' | '/' | '.')) {
+    if s.chars()
+        .all(|c| c.is_ascii_alphanumeric() || matches!(c, '_' | '-' | '/' | '.'))
+    {
         return s.to_string();
     }
     format!("'{}'", s.replace('\'', "'\\''"))
@@ -252,7 +210,10 @@ pub fn run_powershell(command: &str) -> String {
 pub fn macos_app_version(bundle_id: &str) -> Option<String> {
     #[cfg(target_os = "macos")]
     {
-        let query = format!("mdfind \"kMDItemCFBundleIdentifier=='{}'\" | head -1", bundle_id);
+        let query = format!(
+            "mdfind \"kMDItemCFBundleIdentifier=='{}'\" | head -1",
+            bundle_id
+        );
         let app_path = run_shell(&query);
         if app_path.is_empty() {
             return None;
@@ -273,11 +234,7 @@ pub fn macos_app_version(bundle_id: &str) -> Option<String> {
             .ok()
             .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
             .unwrap_or_default();
-        if build.is_empty() {
-            None
-        } else {
-            Some(build)
-        }
+        if build.is_empty() { None } else { Some(build) }
     }
     #[cfg(not(target_os = "macos"))]
     {

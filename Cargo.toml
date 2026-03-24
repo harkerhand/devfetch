@@ -1,6 +1,6 @@
 [package]
-name = "rsenv"
-version = "0.1.0"
+name = "envfetch"
+version = "0.1.1"
 edition = "2024"
 description = "A tool to print dev environment information."
 

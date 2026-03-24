@@ -1,7 +1,7 @@
 use clap::{ArgAction, Args, Parser};
 
 #[derive(Debug, Clone, Parser)]
-#[command(name = "rsenv", version, about = "检测并打印机器环境信息。")]
+#[command(name = "envfetch", version, about = "检测并打印机器环境信息。")]
 pub struct Cli {
     #[command(flatten)]
     pub categories: CategoryArgs,
